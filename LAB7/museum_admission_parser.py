@@ -1,25 +1,59 @@
+import datetime
+
+
 def format_visitor_name(name):
     """
     Formats a full name as 'Surname, Given names' for the ticket.
-    Assumes name contains at least one word.
+    Safely handles None, empty strings, single names, and whitespace.
     """
+    if not name or not isinstance(name, str):
+        return ""
     parts = name.split()
+    if not parts:
+        return ""
+    if len(parts) == 1:
+        return parts[0].title()
     return parts[-1].title() + ', ' + ' '.join(parts[:-1]).title()
+
 
 def parse_group_ages(text):
     """
     Parses space-separated ages into a list of ints.
-    Assumes every value is a whole number.
+    Safely handles None, empty strings, non-numeric tokens, and invalid values.
     """
-    return [int(age) for age in text.split()]
+    if not text or not isinstance(text, str):
+        return []
+    ages = []
+    for token in text.split():
+        try:
+            age = int(token)
+            if age >= 0:
+                ages.append(age)
+        except (ValueError, TypeError):
+            continue
+    return ages
+
 
 def parse_visit_date(text):
     """
     Parses a YYYY-MM-DD date into a (year, month, day) tuple.
-    Assumes text is a valid date with two dashes.
+    Safely handles None, empty strings, malformed formats, and invalid calendar dates.
     """
-    year, month, day = text.strip().split('-')
-    return int(year), int(month), int(day)
+    if not text or not isinstance(text, str):
+        return None
+    parts = text.strip().split('-')
+    if len(parts) != 3:
+        return None
+    try:
+        year = int(parts[0])
+        month = int(parts[1])
+        day = int(parts[2])
+        # Validate actual calendar date within valid date range
+        datetime.date(year, month, day)
+        return (year, month, day)
+    except (ValueError, TypeError, OverflowError):
+        return None
+
 
 def main():
     print("==== Running format_visitor_name ====")
@@ -33,6 +67,7 @@ def main():
     print("\n==== Running parse_visit_date ====")
     value = input("Enter the visit date as YYYY-MM-DD (e.g. 2026-11-05): ")
     print("Visit date (year, month, day):", parse_visit_date(value))
+
 
 if __name__ == "__main__":
     main()
